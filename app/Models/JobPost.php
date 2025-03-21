@@ -6,6 +6,7 @@ use App\Enums\JobStatus;
 use App\Enums\JobType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class JobPost extends Model
 {
@@ -23,5 +24,10 @@ class JobPost extends Model
             'job_type' => JobType::class,
             'status' => JobStatus::class,
         ];
+    }
+
+    public function languages(): BelongsToMany
+    {
+        return $this->belongsToMany(Language::class);
     }
 }

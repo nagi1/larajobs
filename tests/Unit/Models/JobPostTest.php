@@ -3,6 +3,7 @@
 use App\Enums\JobStatus;
 use App\Enums\JobType;
 use App\Models\JobPost;
+use App\Models\Language;
 
 test('job post has required attributes', function () {
     $jobPost = JobPost::factory()->create([
@@ -41,4 +42,14 @@ test('job post has correct attributes structure', function () {
         'created_at',
         'updated_at',
     ]);
+});
+
+test('job post can have languages', function () {
+    $jobPost = JobPost::factory()->create();
+    $language = Language::factory()->create();
+
+    $jobPost->languages()->attach($language);
+
+    expect($jobPost->languages)->toHaveCount(1)
+        ->and($jobPost->languages->contains($language))->toBeTrue();
 });
