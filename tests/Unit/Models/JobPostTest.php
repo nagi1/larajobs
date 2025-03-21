@@ -2,6 +2,7 @@
 
 use App\Enums\JobStatus;
 use App\Enums\JobType;
+use App\Models\Category;
 use App\Models\JobPost;
 use App\Models\Language;
 use App\Models\Location;
@@ -63,4 +64,14 @@ test('job post can have locations', function () {
 
     expect($jobPost->locations)->toHaveCount(1)
         ->and($jobPost->locations->contains($location))->toBeTrue();
+});
+
+test('job post can have categories', function () {
+    $jobPost = JobPost::factory()->create();
+    $category = Category::factory()->create();
+
+    $jobPost->categories()->attach($category);
+
+    expect($jobPost->categories)->toHaveCount(1)
+        ->and($jobPost->categories->contains($category))->toBeTrue();
 });
