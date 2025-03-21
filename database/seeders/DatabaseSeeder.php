@@ -13,8 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Base data that other models depend on
+        $this->call([
+            CategorySeeder::class,
+            LocationSeeder::class,
+            LanguageSeeder::class,
+            AttributeSeeder::class,
+        ]);
 
+        // Create test user
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
