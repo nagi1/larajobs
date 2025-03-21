@@ -4,6 +4,7 @@ use App\Enums\JobStatus;
 use App\Enums\JobType;
 use App\Models\JobPost;
 use App\Models\Language;
+use App\Models\Location;
 
 test('job post has required attributes', function () {
     $jobPost = JobPost::factory()->create([
@@ -52,4 +53,14 @@ test('job post can have languages', function () {
 
     expect($jobPost->languages)->toHaveCount(1)
         ->and($jobPost->languages->contains($language))->toBeTrue();
+});
+
+test('job post can have locations', function () {
+    $jobPost = JobPost::factory()->create();
+    $location = Location::factory()->create();
+
+    $jobPost->locations()->attach($location);
+
+    expect($jobPost->locations)->toHaveCount(1)
+        ->and($jobPost->locations->contains($location))->toBeTrue();
 });

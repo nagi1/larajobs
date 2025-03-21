@@ -30,4 +30,9 @@ class JobPost extends Model
     {
         return $this->belongsToMany(Language::class);
     }
+
+    public function locations(): BelongsToMany
+    {
+        return $this->belongsToMany(Location::class);
+    }
 }
