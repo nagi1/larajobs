@@ -433,3 +433,183 @@ test('EavFilter can filter by boolean attribute with false value', function () {
     expect($results)->toHaveCount(1)
         ->and($results->first()->id)->toBe($jobPost->id);
 });
+
+test('EavFilter can filter by select attribute with exact match', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create another job post with different job type
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Part-time',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with exact match
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => '=',
+        'value' => 'Full-time',
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by select attribute with case-insensitive match', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with case-insensitive match
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => '=',
+        'value' => 'full-time',
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by select attribute with multiple values using IN operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create another job post with different job type
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Part-time',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with multiple values
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => 'in',
+        'value' => ['Full-time', 'Part-time'],
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(2)
+        ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
+        ->and($results->pluck('id')->contains($otherJobPost->id))->toBeTrue();
+});
+
+test('EavFilter handles invalid values in select attribute filter', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with invalid value
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => '=',
+        'value' => 'Invalid-Type',
+    ]);
+
+    // Assert results (should return empty)
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(0);
+});
+
+test('EavFilter handles mix of valid and invalid values in select attribute filter', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create another job post with different job type
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Part-time',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with mix of valid and invalid values
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => 'in',
+        'value' => ['Full-time', 'Invalid-Type', 'Part-time'],
+    ]);
+
+    // Assert results (should only include valid values)
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(2)
+        ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
+        ->and($results->pluck('id')->contains($otherJobPost->id))->toBeTrue();
+});
