@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
         // Create job posts with relationships
         $this->call([
             JobPostSeeder::class,
+            JobAttributeValueSeeder::class,
         ]);
     }
 }
