@@ -13,6 +13,10 @@ return new class extends Migration
             $table->foreignId('job_post_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['job_post_id', 'category_id'], 'category_job_post_unique');
+            $table->index('job_post_id', 'category_job_post_job_post_id_index');
+            $table->index('category_id', 'category_job_post_category_id_index');
         });
     }
 
