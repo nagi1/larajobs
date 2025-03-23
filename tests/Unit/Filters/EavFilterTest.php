@@ -166,3 +166,117 @@ test('EavFilter handles empty value', function () {
     expect($results)->toHaveCount(1)
         ->and($results->first()->id)->toBe($jobPost->id);
 });
+
+test('EavFilter can filter by number attribute with greater than operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'years_of_experience',
+        'type' => AttributeType::NUMBER,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '5',
+    ]);
+
+    // Create another job post with different experience
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with greater than operator
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'years_of_experience',
+        'operator' => '>',
+        'value' => '3',
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by number attribute with less than operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'years_of_experience',
+        'type' => AttributeType::NUMBER,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2',
+    ]);
+
+    // Create another job post with different experience
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '5',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with less than operator
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'years_of_experience',
+        'operator' => '<',
+        'value' => '3',
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by number attribute with equals operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'years_of_experience',
+        'type' => AttributeType::NUMBER,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '5',
+    ]);
+
+    // Create another job post with different experience
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with equals operator
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'years_of_experience',
+        'operator' => '=',
+        'value' => '5',
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});

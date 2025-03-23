@@ -27,7 +27,7 @@ class EavFilter
 
         $attribute = Attribute::query()
             ->where('name', $attributeName)
-            ->where('type', AttributeType::TEXT)
+            ->whereIn('type', [AttributeType::TEXT, AttributeType::NUMBER])
             ->first();
 
         if (! $attribute) {
@@ -36,7 +36,12 @@ class EavFilter
 
         return $query->whereHas('jobAttributeValues', function (Builder $query) use ($attribute, $operator, $attributeValue) {
             $query->where('attribute_id', $attribute->id)
-                ->where('value', $operator === 'like' ? 'like' : $operator, $operator === 'like' ? "%{$attributeValue}%" : $attributeValue);
+                ->when($attribute->type === AttributeType::TEXT, function (Builder $query) use ($operator, $attributeValue) {
+                    $query->where('value', $operator === 'like' ? 'like' : $operator, $operator === 'like' ? "%{$attributeValue}%" : $attributeValue);
+                })
+                ->when($attribute->type === AttributeType::NUMBER, function (Builder $query) use ($operator, $attributeValue) {
+                    $query->where('value', $operator, $attributeValue);
+                });
         });
     }
 }
