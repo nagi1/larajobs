@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Contracts\Filters\FilterInterface;
+use Illuminate\Database\Eloquent\Builder;
 
 abstract class BaseFilter implements FilterInterface
 {
@@ -10,8 +11,7 @@ abstract class BaseFilter implements FilterInterface
      * Create a new filter instance.
      */
     public function __construct(
-        protected string $name,
-        protected string $column,
+        protected readonly string $column,
     ) {}
 
     /**
@@ -19,7 +19,7 @@ abstract class BaseFilter implements FilterInterface
      */
     public function getName(): string
     {
-        return $this->name;
+        return $this->column;
     }
 
     /**
@@ -29,4 +29,6 @@ abstract class BaseFilter implements FilterInterface
     {
         return $this->column;
     }
+
+    abstract public function apply(Builder $query, mixed $value): Builder;
 }
