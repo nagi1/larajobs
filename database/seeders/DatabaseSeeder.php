@@ -26,5 +26,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Create job posts with relationships
+        $this->call([
+            JobPostSeeder::class,
+        ]);
     }
 }
