@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SalaryRangeFilter extends BaseFilter
 {
+    public function __construct()
+    {
+        parent::__construct('salary');
+    }
+
     /**
      * Apply the filter to the query.
      */

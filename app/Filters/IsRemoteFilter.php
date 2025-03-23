@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class IsRemoteFilter extends BaseFilter
 {
+    public function __construct()
+    {
+        parent::__construct('is_remote');
+    }
+
     /**
      * Apply the filter to the query.
      */

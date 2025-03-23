@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DescriptionFilter extends BaseFilter
 {
+    public function __construct()
+    {
+        parent::__construct('description');
+    }
+
     /**
      * Apply the filter to the query.
      */
