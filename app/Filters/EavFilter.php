@@ -23,7 +23,7 @@ class EavFilter
 
         $attribute = Attribute::query()
             ->where('name', $attributeName)
-            ->whereIn('type', [AttributeType::TEXT, AttributeType::NUMBER, AttributeType::BOOLEAN, AttributeType::SELECT])
+            ->whereIn('type', [AttributeType::TEXT, AttributeType::NUMBER, AttributeType::BOOLEAN, AttributeType::SELECT, AttributeType::DATE])
             ->first();
 
         if (! $attribute) {
@@ -35,6 +35,7 @@ class EavFilter
             AttributeType::NUMBER => $this->handleNumberFilter($query, $attribute, $value),
             AttributeType::BOOLEAN => $this->handleBooleanFilter($query, $attribute, $value),
             AttributeType::SELECT => $this->handleSelectFilter($query, $attribute, $value),
+            AttributeType::DATE => $this->handleDateFilter($query, $attribute, $value),
             default => $query,
         };
     }
@@ -124,5 +125,28 @@ class EavFilter
                 $query->whereRaw('LOWER(value) = ?', [strtolower($values[0])]);
             }
         });
+    }
+
+    private function handleDateFilter(Builder $query, Attribute $attribute, array $filter): Builder
+    {
+        $value = $filter['value'] ?? null;
+        if (! $value) {
+            return $query;
+        }
+
+        $operator = $filter['operator'] ?? '=';
+
+        try {
+            // Parse and normalize the date value
+            $dateValue = new \DateTime($value);
+
+            return $query->whereHas('jobAttributeValues', function ($query) use ($attribute, $operator, $dateValue) {
+                $query->where('attribute_id', $attribute->id)
+                    ->whereDate('value', $operator, $dateValue->format('Y-m-d'));
+            });
+        } catch (\Exception $e) {
+            // If date parsing fails, return empty result set
+            return $query->whereRaw('1 = 0');
+        }
     }
 }

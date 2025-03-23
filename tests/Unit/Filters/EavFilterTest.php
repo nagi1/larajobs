@@ -613,3 +613,252 @@ test('EavFilter handles mix of valid and invalid values in select attribute filt
         ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
         ->and($results->pluck('id')->contains($otherJobPost->id))->toBeTrue();
 });
+
+test('EavFilter can filter by date attribute with equals operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with different date
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test exact match
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '=',
+        'value' => '2024-03-15', // Should match even without time part
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by date attribute with greater than operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with later date
+    $laterJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $laterJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test greater than
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '>',
+        'value' => '2024-03-15', // Should work with just the date part
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($laterJobPost->id);
+});
+
+test('EavFilter can filter by date attribute with less than operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with later date
+    $laterJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $laterJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test less than
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '<',
+        'value' => '2024-03-20', // Should work with just the date part
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter handles invalid date values', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test invalid date
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '=',
+        'value' => 'invalid-date',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(0);
+});
+
+test('EavFilter can filter by date attribute with different date formats', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test different date formats
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '=',
+        'value' => '15-03-2024 00:00:00', // DD-MM-YYYY format with time
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+
+    // Test with another format
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '=',
+        'value' => 'March 15, 2024 12:00:00', // Human readable format with time
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by date attribute with greater than or equal operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with later date
+    $laterJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $laterJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test greater than or equal
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '>=',
+        'value' => '2024-03-15',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(2)
+        ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
+        ->and($results->pluck('id')->contains($laterJobPost->id))->toBeTrue();
+});
+
+test('EavFilter can filter by date attribute with less than or equal operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with later date
+    $laterJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $laterJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test less than or equal
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '<=',
+        'value' => '2024-03-20',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(2)
+        ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
+        ->and($results->pluck('id')->contains($laterJobPost->id))->toBeTrue();
+});
