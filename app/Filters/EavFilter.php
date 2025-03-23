@@ -21,13 +21,9 @@ class EavFilter
         $operator = $value['operator'] ?? '=';
         $attributeValue = $value['value'] ?? null;
 
-        if (! $attributeName || ! $attributeValue) {
-            return $query;
-        }
-
         $attribute = Attribute::query()
             ->where('name', $attributeName)
-            ->whereIn('type', [AttributeType::TEXT, AttributeType::NUMBER])
+            ->whereIn('type', [AttributeType::TEXT, AttributeType::NUMBER, AttributeType::BOOLEAN])
             ->first();
 
         if (! $attribute) {
@@ -41,6 +37,11 @@ class EavFilter
                 })
                 ->when($attribute->type === AttributeType::NUMBER, function (Builder $query) use ($operator, $attributeValue) {
                     $query->where('value', $operator, $attributeValue);
+                })
+                ->when($attribute->type === AttributeType::BOOLEAN, function (Builder $query) use ($attributeValue) {
+                    $boolValue = is_bool($attributeValue) ? $attributeValue : filter_var($attributeValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+                    $query->where('value', $boolValue === true ? '1' : '0');
                 });
         });
     }

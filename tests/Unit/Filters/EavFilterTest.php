@@ -356,3 +356,80 @@ test('EavFilter can filter by number attribute with less than or equal operator'
     expect($results)->toHaveCount(1)
         ->and($results->first()->id)->toBe($jobPost->id);
 });
+
+test('EavFilter can filter by boolean attribute with true value', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'has_health_insurance',
+        'type' => AttributeType::BOOLEAN,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '1',
+    ]);
+
+    // Create another job post with different value
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '0',
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with true value
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'has_health_insurance',
+        'operator' => '=',
+        'value' => true,
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by boolean attribute with false value', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'has_health_insurance',
+        'type' => AttributeType::BOOLEAN,
+    ]);
+
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => false,
+    ]);
+
+    // Create another job post with different value
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => true,
+    ]);
+
+    // Create filter instance
+    $filter = new EavFilter;
+
+    // Apply filter with false value
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'has_health_insurance',
+        'operator' => '=',
+        'value' => false,
+    ]);
+
+    // Assert results
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
