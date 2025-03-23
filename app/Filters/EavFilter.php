@@ -49,12 +49,11 @@ class EavFilter
 
         $operator = $filter['operator'] ?? '=';
 
-        return $query->whereHas('jobAttributeValues', function (Builder $query) use ($attribute, $operator, $value) {
+        return $query->whereHas('jobAttributeValues', function ($query) use ($attribute, $operator, $value) {
             $query->where('attribute_id', $attribute->id)
-                ->when($operator === 'like', function (Builder $query) use ($value) {
+                ->when($operator === 'like', function ($query) use ($value) {
                     $query->where('value', 'like', "%{$value}%");
-                })
-                ->when($operator !== 'like', function (Builder $query) use ($operator, $value) {
+                }, function ($query) use ($operator, $value) {
                     $query->where('value', $operator, $value);
                 });
         });
@@ -83,11 +82,12 @@ class EavFilter
             return $query;
         }
 
+        $operator = $filter['operator'] ?? '=';
         $boolValue = is_bool($value) ? $value : filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        return $query->whereHas('jobAttributeValues', function (Builder $query) use ($attribute, $boolValue) {
+        return $query->whereHas('jobAttributeValues', function (Builder $query) use ($attribute, $boolValue, $operator) {
             $query->where('attribute_id', $attribute->id)
-                ->where('value', $boolValue === true ? '1' : '0');
+                ->where('value', $operator, $boolValue === true ? '1' : '0');
         });
     }
 
@@ -121,6 +121,8 @@ class EavFilter
                         $q->orWhereRaw('LOWER(value) = ?', [strtolower($value)]);
                     }
                 });
+            } elseif ($operator === '!=') {
+                $query->whereRaw('LOWER(value) != ?', [strtolower($values[0])]);
             } else {
                 $query->whereRaw('LOWER(value) = ?', [strtolower($values[0])]);
             }

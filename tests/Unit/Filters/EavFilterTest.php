@@ -862,3 +862,220 @@ test('EavFilter can filter by date attribute with less than or equal operator', 
         ->and($results->pluck('id')->contains($jobPost->id))->toBeTrue()
         ->and($results->pluck('id')->contains($laterJobPost->id))->toBeTrue();
 });
+
+test('EavFilter can filter by text attribute with inequality operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'tech_stack',
+        'type' => AttributeType::TEXT,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'PHP, Laravel, MySQL',
+    ]);
+
+    // Create another job post with different tech stack
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Python, Django, PostgreSQL',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test inequality
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'tech_stack',
+        'operator' => '!=',
+        'value' => 'PHP, Laravel, MySQL',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+});
+
+test('EavFilter can filter by number attribute with inequality operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'years_experience',
+        'type' => AttributeType::NUMBER,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '5',
+    ]);
+
+    // Create another job post with different experience
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '3',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test inequality
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'years_experience',
+        'operator' => '!=',
+        'value' => '5',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+});
+
+test('EavFilter can filter by boolean attribute with inequality operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'has_health_insurance',
+        'type' => AttributeType::BOOLEAN,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '1',
+    ]);
+
+    // Create another job post with different value
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '0',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test inequality with true value
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'has_health_insurance',
+        'operator' => '!=',
+        'value' => true,
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+
+    // Test inequality with false value
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'has_health_insurance',
+        'operator' => '!=',
+        'value' => false,
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($jobPost->id);
+});
+
+test('EavFilter can filter by select attribute with inequality operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'job_type',
+        'type' => AttributeType::SELECT,
+        'options' => ['Full-time', 'Part-time', 'Contract', 'Internship'],
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Full-time',
+    ]);
+
+    // Create another job post with different job type
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => 'Part-time',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test inequality
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => '!=',
+        'value' => 'Full-time',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+
+    // Test case-insensitive inequality
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'job_type',
+        'operator' => '!=',
+        'value' => 'full-time',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+});
+
+test('EavFilter can filter by date attribute with inequality operator', function () {
+    // Create test data
+    $jobPost = JobPost::factory()->create();
+    $attribute = Attribute::factory()->create([
+        'name' => 'start_date',
+        'type' => AttributeType::DATE,
+    ]);
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $jobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-15 00:00:00',
+    ]);
+
+    // Create another job post with different date
+    $otherJobPost = JobPost::factory()->create();
+    JobAttributeValue::factory()->create([
+        'job_post_id' => $otherJobPost,
+        'attribute_id' => $attribute,
+        'value' => '2024-03-20 00:00:00',
+    ]);
+
+    $filter = new EavFilter;
+
+    // Test inequality with exact date
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '!=',
+        'value' => '2024-03-15',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+
+    // Test inequality with different date format
+    $query = JobPost::query();
+    $filteredQuery = $filter->apply($query, [
+        'name' => 'start_date',
+        'operator' => '!=',
+        'value' => '15-03-2024',
+    ]);
+
+    $results = $filteredQuery->get();
+    expect($results)->toHaveCount(1)
+        ->and($results->first()->id)->toBe($otherJobPost->id);
+});
