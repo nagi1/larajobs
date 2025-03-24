@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,8 +11,11 @@ return new class extends Migration
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
             $table->string('city');
+            $table->string('city_lower')->virtualAs('LOWER(city)')->index();
             $table->string('state');
+            $table->string('state_lower')->virtualAs('LOWER(state)')->index();
             $table->string('country');
+            $table->string('country_lower')->virtualAs('LOWER(country)')->index();
             $table->timestamps();
 
             $table->unique(['city', 'state', 'country']);
@@ -22,10 +24,6 @@ return new class extends Migration
             $table->index('state');
             $table->index('country');
         });
-
-        DB::statement('CREATE INDEX locations_city_lower_index ON locations (LOWER(city))');
-        DB::statement('CREATE INDEX locations_state_lower_index ON locations (LOWER(state))');
-        DB::statement('CREATE INDEX locations_country_lower_index ON locations (LOWER(country))');
     }
 
     public function down(): void

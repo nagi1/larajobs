@@ -45,20 +45,21 @@ class LocationFilter implements FilterInterface
         }
 
         $mode = isset($value['mode']) ? $value['mode'] : 'has_any';
+        $checkRemote = isset($value['check_remote']) && $value['check_remote'];
 
         return match ($mode) {
             'exists' => $query->has('locations'),
             '=' => $query->whereHas('locations', function (Builder $query) use ($locationIds) {
                 $query->whereIn('locations.id', $locationIds);
-            }, '=', count($locationIds))->whereDoesntHave('locations', function (Builder $query) use ($locationIds) {
+            }, '=', count($locationIds))->when($checkRemote, fn ($q) => $q->where('is_remote', false))->whereDoesntHave('locations', function (Builder $query) use ($locationIds) {
                 $query->whereNotIn('locations.id', $locationIds);
             }),
             'has_any' => $query->whereHas('locations', function (Builder $query) use ($locationIds) {
                 $query->whereIn('locations.id', $locationIds);
-            }),
+            })->when($checkRemote, fn ($q) => $q->where('is_remote', false)),
             'is_any' => $query->whereHas('locations', function (Builder $query) use ($locationIds) {
                 $query->whereIn('locations.id', $locationIds);
-            })->whereRaw('(SELECT COUNT(*) FROM job_post_location WHERE job_post_location.job_post_id = job_posts.id) = 1'),
+            })->when($checkRemote, fn ($q) => $q->where('is_remote', false))->whereRaw('(SELECT COUNT(*) FROM job_post_location WHERE job_post_location.job_post_id = job_posts.id) = 1'),
             default => throw new \InvalidArgumentException("Unsupported mode: {$mode}")
         };
     }

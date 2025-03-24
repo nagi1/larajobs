@@ -447,18 +447,28 @@ class EavFilter implements FilterInterface
                 if ($from) {
                     try {
                         $fromDate = new \DateTime($from);
-                        $join->whereDate('date_range_filter.value', '>=', $fromDate->format('Y-m-d'));
+                        $join->where('date_range_filter.value', '>=', $fromDate->format('Y-m-d H:i:s'));
                     } catch (\Exception $e) {
-                        // Invalid date format, skip this condition
+                        // Try strtotime as a fallback
+                        $timestamp = strtotime($from);
+                        if ($timestamp !== false) {
+                            $fromDate = new \DateTime('@'.$timestamp);
+                            $join->where('date_range_filter.value', '>=', $fromDate->format('Y-m-d H:i:s'));
+                        }
                     }
                 }
 
                 if ($to) {
                     try {
                         $toDate = new \DateTime($to);
-                        $join->whereDate('date_range_filter.value', '<=', $toDate->format('Y-m-d'));
+                        $join->where('date_range_filter.value', '<=', $toDate->format('Y-m-d H:i:s'));
                     } catch (\Exception $e) {
-                        // Invalid date format, skip this condition
+                        // Try strtotime as a fallback
+                        $timestamp = strtotime($to);
+                        if ($timestamp !== false) {
+                            $toDate = new \DateTime('@'.$timestamp);
+                            $join->where('date_range_filter.value', '<=', $toDate->format('Y-m-d H:i:s'));
+                        }
                     }
                 }
             });
@@ -474,21 +484,26 @@ class EavFilter implements FilterInterface
         $operator = $filter['operator'] ?? '=';
 
         try {
-            // Parse and normalize the date value
+            // Try DateTime first
             $dateValue = new \DateTime($value);
-
-            // Use join for better performance
-            $query->join('job_attribute_values AS date_filter', function ($join) use ($attribute, $operator, $dateValue) {
-                $join->on('job_posts.id', '=', 'date_filter.job_post_id')
-                    ->where('date_filter.attribute_id', '=', $attribute->id)
-                    ->whereDate('date_filter.value', $operator, $dateValue->format('Y-m-d'));
-            });
-
-            return $query->distinct('job_posts.id');
         } catch (\Exception $e) {
-            // If date parsing fails, return empty result set
-            return $query->whereRaw('1 = 0');
+            // If DateTime fails, try strtotime as a fallback
+            $timestamp = strtotime($value);
+            if ($timestamp === false) {
+                // Return a query that will return no results for invalid dates
+                return $query->whereRaw('1 = 0');
+            }
+            $dateValue = new \DateTime('@'.$timestamp);
         }
+
+        // Use join for better performance
+        $query->join('job_attribute_values AS date_filter', function ($join) use ($attribute, $operator, $dateValue) {
+            $join->on('job_posts.id', '=', 'date_filter.job_post_id')
+                ->where('date_filter.attribute_id', '=', $attribute->id)
+                ->whereRaw('DATE(date_filter.value) '.$operator.' ?', [$dateValue->format('Y-m-d')]);
+        });
+
+        return $query->distinct('job_posts.id');
     }
 
     private function handleRelativeDateFilter(Builder $query, Attribute $attribute, string $term): Builder

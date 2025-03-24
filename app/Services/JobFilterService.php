@@ -147,7 +147,11 @@ class JobFilterService
                 if (isset($match[3])) {
                     $relationCondition .= ' ('.$match[3].')';
                 }
-                $conditions[] = $this->parseCondition($relationCondition);
+                $condition = $this->parseCondition($relationCondition);
+                if ($condition && $condition['field'] === 'locations') {
+                    $condition['check_remote'] = true;
+                }
+                $conditions[] = $condition;
             }
         }
 
@@ -474,6 +478,7 @@ class JobFilterService
     {
         $field = $condition['field'];
         $values = $condition['values'];
+        $operator = $condition['operator'];
 
         if (! isset($this->filters[$field])) {
             return;
@@ -482,10 +487,16 @@ class JobFilterService
         $filterClass = $this->filters[$field];
         $filter = new $filterClass;
 
-        $filter->apply($query, [
-            'mode' => strtolower($condition['operator']),
+        $filterParams = [
+            'mode' => strtolower($operator),
             'values' => $values,
-        ]);
+        ];
+
+        if (isset($condition['check_remote'])) {
+            $filterParams['check_remote'] = $condition['check_remote'];
+        }
+
+        $filter->apply($query, $filterParams);
     }
 
     /**

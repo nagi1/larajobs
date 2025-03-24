@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,9 +18,10 @@ return new class extends Migration
 
             // Add index on job_post_id and attribute_id combination for faster filtering
             $table->index(['job_post_id', 'attribute_id']);
-            // Add index on attribute_id and value for faster filtering by attribute values
-            $table->index(['attribute_id', 'value(191)']);
         });
+
+        // Add index on attribute_id and value for faster filtering by attribute values
+        DB::statement('ALTER TABLE job_attribute_values ADD INDEX job_attribute_values_attribute_id_value_index (attribute_id, value(191))');
     }
 
     public function down(): void
