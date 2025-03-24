@@ -18,7 +18,9 @@ class JobPostController extends Controller
      */
     public function index(FilterJobRequest $request, JobFilterService $filterService)
     {
-        $query = JobPost::query();
+        $query = JobPost::query()->with([
+            'jobAttributeValues', 'categories', 'languages', 'locations',
+        ]);
 
         // Get all validated fields
         $validated = $request->validated();
