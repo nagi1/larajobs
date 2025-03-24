@@ -8,50 +8,11 @@ The LaraJobs API allows for powerful and flexible filtering of job listings thro
 
 ## Basic Concepts
 
-The API supports two main approaches to filtering:
-
-1. **Object-based filtering**: Simple key-value pairs for straightforward queries
-2. **String-based filtering**: Complex expressions with logical operators for advanced queries
-
-## Object-Based Filtering
-
-Object-based filtering uses a simple format where each filter is a key-value pair:
-
-```
-GET /api/jobs?filter[field]=value
-```
-
-### Format
-
-For multiple filters, simply add more key-value pairs:
-
-```
-GET /api/jobs?filter[job_type]=full-time&filter[is_remote]=true&filter[salary_min]=70000
-```
-
-This example filters for full-time, remote jobs with a minimum salary of 70,000.
-
-### Supported Fields
-
-| Field        | Type       | Operators                      | Description                   |
-| ------------ | ---------- | ------------------------------ | ----------------------------- |
-| title        | string     | =, !=, LIKE                    | Job title                     |
-| description  | string     | =, !=, LIKE                    | Job description               |
-| company_name | string     | =, !=, LIKE                    | Company name                  |
-| salary_min   | number     | =, !=, >, <, >=, <=            | Minimum salary                |
-| salary_max   | number     | =, !=, >, <, >=, <=            | Maximum salary                |
-| is_remote    | boolean    | =, !=                          | Whether job is remote         |
-| job_type     | enum       | =, !=, IN                      | Type of job (full-time, etc.) |
-| status       | enum       | =, !=, IN                      | Job status (published, etc.)  |
-| published_at | date       | =, !=, >, <, >=, <=            | Publication date              |
-| languages    | collection | =, !=, HAS_ANY, IS_ANY, EXISTS | Programming languages         |
-| locations    | collection | =, !=, HAS_ANY, IS_ANY, EXISTS | Job locations                 |
-| categories   | collection | =, !=, HAS_ANY, IS_ANY, EXISTS | Job categories                |
-| attribute:\* | varies     | varies by type                 | Dynamic EAV attributes        |
+The API supports string-based filtering with complex expressions and logical operators for advanced queries.
 
 ## String-Based Filtering
 
-String-based filtering allows for more complex queries with logical operators:
+String-based filtering allows for complex queries with logical operators:
 
 ```
 GET /api/jobs?filter=field=value
@@ -131,12 +92,6 @@ GET /api/jobs?filter=attribute:years_experience>=3
 GET /api/jobs?filter=attribute:years_experience<=7
 ```
 
-Range filtering:
-
-```
-GET /api/jobs?filter[attribute:years_experience][min]=3&filter[attribute:years_experience][max]=7
-```
-
 #### Boolean Attributes
 
 ```
@@ -156,12 +111,6 @@ GET /api/jobs?filter=attribute:framework IN (Laravel,Symfony,CodeIgniter)
 ```
 GET /api/jobs?filter=attribute:start_date>=2023-01-01
 GET /api/jobs?filter=attribute:certification_date<=2023-12-31
-```
-
-Range filtering:
-
-```
-GET /api/jobs?filter[attribute:certification_period][from]=2023-01-01&filter[attribute:certification_period][to]=2023-12-31
 ```
 
 ## Complex Query Examples
@@ -221,7 +170,7 @@ Common errors include:
 
 When you submit a filter, the API processes it as follows:
 
-1. **Parsing**: The filter string or object is parsed into a structured format
+1. **Parsing**: The filter string is parsed into a structured format
 2. **Validation**: Each filter condition is validated against the allowed fields and operators
 3. **Query Building**: Valid filters are translated into database query conditions
 4. **Execution**: The query is executed, and matching job posts are returned
@@ -229,4 +178,3 @@ When you submit a filter, the API processes it as follows:
 ## Further Resources
 
 -   [API Documentation](/docs/api-documentation.md): Complete documentation for all API endpoints
--   [EAV Filter Optimization](/docs/eav-filter-optimization.md): Technical details on how EAV filters are optimized

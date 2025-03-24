@@ -1,0 +1,332 @@
+{
+    "info": {
+        "_postman_id": "c5a7e8f1-3d5b-4b7e-8c2e-f68d4215a0b5",
+        "name": "Laravel Job Board API",
+        "description": "A collection for testing the Laravel Job Board API with advanced filtering capabilities",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Jobs",
+            "item": [
+                {
+                    "name": "Get All Jobs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"]
+                        },
+                        "description": "Get all job listings without filtering"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Basic Field (Job Type)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=job_type=full-time",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "job_type=full-time"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs by job type (full-time)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Boolean Field (Remote)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=is_remote=true",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "is_remote=true"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs by remote status (is_remote=true)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Text Field (LIKE)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=title LIKE \"Developer\"",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "title LIKE \"Developer\""
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs by title containing 'Developer'"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Numeric Range (Salary)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=salary_min>=50000 AND salary_max<=100000",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "salary_min>=50000 AND salary_max<=100000"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs by salary range (between $50k and $100k)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Date Range",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=published_at>=2023-01-01 AND published_at<=2023-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "published_at>=2023-01-01 AND published_at<=2023-12-31"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs published in 2023"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Languages (HAS_ANY)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=languages HAS_ANY (PHP,JavaScript)",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "languages HAS_ANY (PHP,JavaScript)"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs requiring PHP OR JavaScript"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Locations (IS_ANY)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=locations IS_ANY (New York,Remote)",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "locations IS_ANY (New York,Remote)"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs with location EXACTLY New York OR Remote (and no other locations)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by EAV Attribute (years_experience)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=attribute:years_experience>=3",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "attribute:years_experience>=3"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs requiring 3+ years of experience"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Complex Filter - String Format",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=(job_type=full-time AND (languages HAS_ANY (PHP,JavaScript))) AND (locations IS_ANY (New York,Remote)) AND attribute:years_experience>=3",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "(job_type=full-time AND (languages HAS_ANY (PHP,JavaScript))) AND (locations IS_ANY (New York,Remote)) AND attribute:years_experience>=3"
+                                }
+                            ]
+                        },
+                        "description": "Complex filter combining multiple conditions using string format"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Pagination and Sorting",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/jobs?filter=job_type=full-time&sort=published_at&order=desc&per_page=15",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "jobs"],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "job_type=full-time"
+                                },
+                                {
+                                    "key": "sort",
+                                    "value": "published_at"
+                                },
+                                {
+                                    "key": "order",
+                                    "value": "desc"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
+                            ]
+                        },
+                        "description": "Filter jobs with pagination and sorting (full-time jobs, sorted by published date descending, 15 per page)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints for job listings with advanced filtering capabilities"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://astudio-larajobs.test",
+            "type": "string",
+            "description": "Base URL for your Laravel application"
+        }
+    ]
+}

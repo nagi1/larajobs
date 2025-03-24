@@ -5,7 +5,7 @@ This document provides detailed information about the LaraJobs API, which offers
 ## Base URL
 
 ```
-https://api.larajobs.com
+https://astudio-larajobs.test
 ```
 
 ## Authentication
@@ -26,7 +26,7 @@ Retrieves a paginated list of job postings that match the specified criteria.
 
 | Parameter | Type   | Description                                 | Default    |
 | --------- | ------ | ------------------------------------------- | ---------- |
-| filter    | mixed  | Filter criteria to narrow down job listings | null       |
+| filter    | string | Filter criteria to narrow down job listings | null       |
 | sort      | string | Field to sort results by                    | created_at |
 | order     | string | Sort order, either 'asc' or 'desc'          | desc       |
 | per_page  | int    | Number of results per page (max 100)        | 15         |
@@ -49,104 +49,126 @@ The API returns JSON responses with the following structure:
             "is_remote": true,
             "job_type": "full-time",
             "status": "published",
-            "published_at": "2023-06-15T12:00:00Z",
-            "attributes": [
-                {
-                    "name": "years_experience",
-                    "type": "number",
-                    "value": "5"
-                },
-                {
-                    "name": "skills",
-                    "type": "select",
-                    "value": ["PHP", "Laravel", "Vue.js"]
-                }
-            ],
+            "published_at": "2023-06-15T10:30:00Z",
+            "created_at": "2023-06-10T15:45:22Z",
+            "updated_at": "2023-06-15T10:30:00Z",
             "languages": ["PHP", "JavaScript"],
             "locations": ["New York", "Remote"],
-            "categories": ["Web Development", "Backend"]
+            "categories": ["Backend", "Web Development"],
+            "attributes": {
+                "years_experience": "5+",
+                "education_level": "Bachelor's",
+                "benefits": true
+            }
         }
-        // More job listings...
+        // Additional job posts...
     ],
-    "links": {
-        "first": "https://api.larajobs.com/api/jobs?page=1",
-        "last": "https://api.larajobs.com/api/jobs?page=10",
-        "prev": null,
-        "next": "https://api.larajobs.com/api/jobs?page=2"
-    },
     "meta": {
         "current_page": 1,
         "from": 1,
         "last_page": 10,
-        "path": "https://api.larajobs.com/api/jobs",
+        "path": "https://astudio-larajobs.test/api/jobs",
         "per_page": 15,
         "to": 15,
-        "total": 150,
-        "filters": "...",
-        "sort": "title",
-        "order": "asc"
+        "total": 150
+    },
+    "links": {
+        "first": "https://astudio-larajobs.test/api/jobs?page=1",
+        "last": "https://astudio-larajobs.test/api/jobs?page=10",
+        "prev": null,
+        "next": "https://astudio-larajobs.test/api/jobs?page=2"
     }
 }
 ```
 
 ## Filtering
 
-The API supports two methods for filtering:
+The API provides powerful filtering capabilities using a string-based query format. You can filter jobs based on standard fields, relationships, and dynamic attributes.
 
-### 1. Object-Based Filtering
+### Filter Syntax
 
-You can pass an object with key-value pairs to filter job listings. For example:
-
-```
-GET /api/jobs?filter[job_type]=full-time&filter[is_remote]=true&filter[salary_min]=70000
-```
-
-### 2. String-Based Filtering
-
-For more complex filtering needs, you can use string notation with logical operators:
+The basic filter syntax is:
 
 ```
-GET /api/jobs?filter=(job_type=full-time AND is_remote=true) AND salary_min>=70000
+field_name operator value
 ```
 
-#### Supported Operators
-
-##### Logical Operators
-
-| Operator | Description                               |
-| -------- | ----------------------------------------- |
-| AND      | Logical AND between conditions            |
-| OR       | Logical OR between conditions             |
-| ( )      | Grouping conditions to control precedence |
-
-##### Comparison Operators
-
-| Operator | Description                          |
-| -------- | ------------------------------------ |
-| =        | Equal to                             |
-| !=       | Not equal to                         |
-| >        | Greater than                         |
-| <        | Less than                            |
-| >=       | Greater than or equal to             |
-| <=       | Less than or equal to                |
-| LIKE     | Contains substring (for text fields) |
-| IN       | Value matches any in a set           |
-
-##### Collection Operators
-
-| Operator | Description                                |
-| -------- | ------------------------------------------ |
-| HAS_ANY  | Collection has any of the specified values |
-| IS_ANY   | Collection is any of the specified values  |
-| EXISTS   | Collection exists                          |
-
-### EAV Attribute Filtering
-
-To filter by dynamic attributes, use the `attribute:` prefix:
+For example:
 
 ```
-GET /api/jobs?filter=attribute:years_experience>=3
+job_type=full-time
 ```
+
+Multiple conditions can be combined using logical operators:
+
+```
+(job_type=full-time OR job_type=contract) AND is_remote=true
+```
+
+### Standard Field Filtering
+
+Filter by job title, company name, salary, status, etc.
+
+#### Text Fields
+
+```
+GET /api/jobs?filter=title LIKE "Laravel Developer"
+GET /api/jobs?filter=company_name="Acme Inc"
+```
+
+#### Numeric Fields
+
+```
+GET /api/jobs?filter=salary_min>=50000
+GET /api/jobs?filter=salary_max<=100000
+```
+
+#### Boolean Fields
+
+```
+GET /api/jobs?filter=is_remote=true
+```
+
+#### Enum Fields
+
+```
+GET /api/jobs?filter=job_type=full-time
+GET /api/jobs?filter=status IN (published,featured)
+```
+
+#### Date Fields
+
+```
+GET /api/jobs?filter=published_at>=2023-01-01
+GET /api/jobs?filter=published_at<=2023-12-31
+```
+
+### Relationship Filtering
+
+Filter by related entities like languages, locations, or categories.
+
+#### Languages
+
+```
+GET /api/jobs?filter=languages HAS_ANY (PHP,JavaScript)
+```
+
+#### Locations
+
+```
+GET /api/jobs?filter=locations IS_ANY (New York,Remote)
+```
+
+#### Categories
+
+```
+GET /api/jobs?filter=categories EXISTS
+GET /api/jobs?filter=categories HAS_ANY (Backend,Frontend)
+```
+
+### Attribute (EAV) Filtering
+
+Filter by dynamic attributes using the `attribute:` prefix.
 
 #### Text Attributes
 
@@ -157,16 +179,8 @@ GET /api/jobs?filter=attribute:description LIKE Vue
 
 #### Number Attributes
 
-Simple comparison:
-
 ```
 GET /api/jobs?filter=attribute:years_experience>=3
-```
-
-Range filtering:
-
-```
-GET /api/jobs?filter[attribute:years_experience][min]=3&filter[attribute:years_experience][max]=7
 ```
 
 #### Boolean Attributes
@@ -184,16 +198,8 @@ GET /api/jobs?filter=attribute:skills IN (PHP,Laravel,Vue.js)
 
 #### Date Attributes
 
-Simple comparison:
-
 ```
 GET /api/jobs?filter=attribute:certification_date>=2023-01-01
-```
-
-Range filtering:
-
-```
-GET /api/jobs?filter[attribute:certification_date][from]=2023-01-01&filter[attribute:certification_date][to]=2023-12-31
 ```
 
 #### Complex Example
@@ -253,7 +259,7 @@ The `meta` object in the response contains pagination details:
   "current_page": 1,
   "from": 1,
   "last_page": 10,
-  "path": "https://api.larajobs.com/api/jobs",
+  "path": "https://astudio-larajobs.test/api/jobs",
   "per_page": 15,
   "to": 15,
   "total": 150
@@ -303,7 +309,7 @@ X-RateLimit-Reset: 1623423543
 ### Basic Job Search
 
 ```
-GET /api/jobs?filter[job_type]=full-time&filter[is_remote]=true&sort=published_at&order=desc
+GET /api/jobs?filter=job_type=full-time AND is_remote=true&sort=published_at&order=desc
 ```
 
 ### Complex Filter Request
