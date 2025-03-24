@@ -2,10 +2,11 @@
 
 namespace App\Filters;
 
+use App\Contracts\Filters\FilterInterface;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Builder;
 
-class LocationFilter
+class LocationFilter implements FilterInterface
 {
     public function apply(Builder $query, mixed $value): Builder
     {
@@ -55,10 +56,18 @@ class LocationFilter
             'has_any' => $query->whereHas('locations', function (Builder $query) use ($locationIds) {
                 $query->whereIn('locations.id', $locationIds);
             }),
-            'is_any' => $query->has('locations', '=', 1)->whereHas('locations', function (Builder $query) use ($locationIds) {
+            'is_any' => $query->whereHas('locations', function (Builder $query) use ($locationIds) {
                 $query->whereIn('locations.id', $locationIds);
-            }),
+            })->whereRaw('(SELECT COUNT(*) FROM job_post_location WHERE job_post_location.job_post_id = job_posts.id) = 1'),
             default => throw new \InvalidArgumentException("Unsupported mode: {$mode}")
         };
+    }
+
+    /**
+     * Get the name of the filter.
+     */
+    public function getName(): string
+    {
+        return 'locations';
     }
 }
