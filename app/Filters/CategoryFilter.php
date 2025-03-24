@@ -2,10 +2,11 @@
 
 namespace App\Filters;
 
+use App\Contracts\Filters\FilterInterface;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
 
-class CategoryFilter
+class CategoryFilter implements FilterInterface
 {
     public function apply(Builder $query, mixed $value): Builder
     {
@@ -55,5 +56,13 @@ class CategoryFilter
             }),
             default => throw new \InvalidArgumentException("Unsupported mode: {$mode}")
         };
+    }
+
+    /**
+     * Get the name of the filter.
+     */
+    public function getName(): string
+    {
+        return 'categories';
     }
 }
