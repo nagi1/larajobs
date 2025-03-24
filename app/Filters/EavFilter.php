@@ -83,11 +83,34 @@ class EavFilter
         }
 
         $operator = $filter['operator'] ?? '=';
-        $boolValue = is_bool($value) ? $value : filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
+        // Convert to boolean if it's not already
+        if (is_string($value)) {
+            $value = strtolower($value);
+            $boolValue = $value === 'true' || $value === '1' || $value === 'yes';
+        } else {
+            $boolValue = (bool) $value;
+        }
+
+        // In the database, boolean values are stored as strings
         return $query->whereHas('jobAttributeValues', function (Builder $query) use ($attribute, $boolValue, $operator) {
-            $query->where('attribute_id', $attribute->id)
-                ->where('value', $operator, $boolValue === true ? '1' : '0');
+            $query->where('attribute_id', $attribute->id);
+
+            if ($boolValue) {
+                // If looking for true, match any of these true values
+                if ($operator === '=') {
+                    $query->whereIn('value', ['true', '1', 'yes']);
+                } else {
+                    $query->whereNotIn('value', ['true', '1', 'yes']);
+                }
+            } else {
+                // If looking for false, match any of these false values
+                if ($operator === '=') {
+                    $query->whereIn('value', ['false', '0', 'no']);
+                } else {
+                    $query->whereNotIn('value', ['false', '0', 'no']);
+                }
+            }
         });
     }
 
@@ -103,7 +126,18 @@ class EavFilter
 
         // Convert values to lowercase for case-insensitive comparison
         $values = array_map('strtolower', $values);
-        $validOptions = array_map('strtolower', $attribute->options);
+
+        // Ensure options is an array before mapping
+        $options = $attribute->options ?? [];
+        if (is_string($options)) {
+            try {
+                $options = json_decode($options, true) ?? [];
+            } catch (\Exception $e) {
+                $options = [];
+            }
+        }
+
+        $validOptions = is_array($options) ? array_map('strtolower', $options) : [];
 
         // Filter out invalid options
         $values = array_values(array_filter($values, fn ($v) => in_array($v, $validOptions)));
