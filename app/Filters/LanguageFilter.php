@@ -2,10 +2,11 @@
 
 namespace App\Filters;
 
+use App\Contracts\Filters\FilterInterface;
 use App\Models\Language;
 use Illuminate\Database\Eloquent\Builder;
 
-class LanguageFilter
+class LanguageFilter implements FilterInterface
 {
     /**
      * Apply the language filter to the query
@@ -53,10 +54,18 @@ class LanguageFilter
             'has_any' => $query->whereHas('languages', function (Builder $query) use ($languageIds) {
                 $query->whereIn('languages.id', $languageIds);
             }),
-            'is_any' => $query->has('languages', '=', 1)->whereHas('languages', function (Builder $query) use ($languageIds) {
+            'is_any' => $query->whereHas('languages', function (Builder $query) use ($languageIds) {
                 $query->whereIn('languages.id', $languageIds);
-            }),
+            })->whereRaw('(SELECT COUNT(*) FROM job_post_language WHERE job_post_language.job_post_id = job_posts.id) = 1'),
             default => throw new \InvalidArgumentException("Unsupported mode: {$mode}")
         };
+    }
+
+    /**
+     * Get the name of the filter.
+     */
+    public function getName(): string
+    {
+        return 'languages';
     }
 }
