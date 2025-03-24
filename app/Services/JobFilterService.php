@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\Filters\PipelineInterface;
 use App\Filters\CategoryFilter;
 use App\Filters\DescriptionFilter;
 use App\Filters\EavFilter;
@@ -18,6 +19,11 @@ use Illuminate\Support\Str;
 
 class JobFilterService
 {
+    /**
+     * The filter pipeline instance
+     */
+    protected PipelineInterface $pipeline;
+
     private array $filters = [
         'status' => StatusFilter::class,
         'job_type' => JobTypeFilter::class,
@@ -32,16 +38,32 @@ class JobFilterService
     ];
 
     /**
-     * Apply filters to a query based on a filter string
+     * JobFilterService constructor
      */
-    public function apply(Builder $query, string $filterString): Builder
+    public function __construct(PipelineInterface $pipeline)
     {
-        if (empty($filterString)) {
+        $this->pipeline = $pipeline;
+    }
+
+    /**
+     * Apply filters to a query based on a filter string or array
+     *
+     * @throws \App\Exceptions\FilterException If there's an error in the filter format
+     */
+    public function apply(Builder $query, string|array $filters): Builder
+    {
+        // If filters is an array, use the pipeline
+        if (is_array($filters)) {
+            return $this->pipeline->process($query, $filters);
+        }
+
+        // Otherwise, process the filter string using the legacy parsing approach
+        if (empty($filters)) {
             return $query;
         }
 
         // Parse the filter string into a structure we can work with
-        $conditions = $this->parseFilterString($filterString);
+        $conditions = $this->parseFilterString($filters);
 
         if (empty($conditions)) {
             return $query;
@@ -312,6 +334,12 @@ class JobFilterService
                 $value = is_bool($value) ? $value : filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             }
 
+            // Handle numeric values more explicitly for comparison operators
+            if (in_array($operator, ['>', '<', '>=', '<=']) && is_numeric($value)) {
+                // Convert to float or int to ensure numeric comparison
+                $value = strpos((string) $value, '.') !== false ? (float) $value : (int) $value;
+            }
+
             return [
                 'type' => 'attribute',
                 'name' => $attributeName,
@@ -343,9 +371,11 @@ class JobFilterService
             return false;
         }
 
-        // Handle numeric values
+        // Handle numeric values - ensure we convert to actual numeric types
+        // for proper comparison in filter handlers
         if (is_numeric($value)) {
-            return $value + 0; // Convert to int or float as appropriate
+            // Convert to float if it has a decimal point, otherwise to int
+            return strpos($value, '.') !== false ? (float) $value : (int) $value;
         }
 
         return $value;
