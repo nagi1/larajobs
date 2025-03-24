@@ -14,6 +14,11 @@ return new class extends Migration
             $table->foreignId('attribute_id')->constrained()->cascadeOnDelete();
             $table->text('value');
             $table->timestamps();
+
+            // Add index on job_post_id and attribute_id combination for faster filtering
+            $table->index(['job_post_id', 'attribute_id']);
+            // Add index on attribute_id and value for faster filtering by attribute values
+            $table->index(['attribute_id', 'value(191)']);
         });
     }
 
